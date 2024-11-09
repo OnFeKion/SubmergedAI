@@ -8,12 +8,7 @@
         #label-container div {
             font-size: 24px; /* Aumenta o tamanho do texto */
             font-weight: bold; /* Torna o texto em negrito */
-            color: #e97b4e; /* Define a cor do texto */
-        }
-
-        /* Estilo para a cor do Coral Normal */
-        .coral-normal {
-            color: #ff7f50; /* Cor para o Coral Normal */
+            color: #e97b4e; /* Define a cor padrão para "Coral Sol" */
         }
     </style>
 </head>
@@ -65,9 +60,11 @@
                 const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
                 labelContainer.childNodes[i].innerHTML = classPrediction;
 
-                // Defina a cor para o Coral Normal (modificando o texto que contém esse rótulo)
+                // Verificar se a classe é "Coral Normal" e mudar a cor para #113d63
                 if (prediction[i].className === "Coral Normal") {
-                    labelContainer.childNodes[i].classList.add("coral-normal");
+                    labelContainer.childNodes[i].style.color = "#113d63";  // Coral Normal
+                } else {
+                    labelContainer.childNodes[i].style.color = "#e97b4e";  // Coral Sol
                 }
             }
         }
