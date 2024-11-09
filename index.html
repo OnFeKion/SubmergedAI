@@ -38,8 +38,17 @@
         h2 {
             text-align: center; /* Centraliza o título */
             color: #185387; /* Define a cor para FrancoDroid */
-            font-size: 42px; /* Aumenta o tamanho da fonte */
+            font-size: 32px; /* Aumenta o tamanho da fonte */
             font-family: 'Merriweather Sans', sans-serif;
+        }
+
+        /* Estilo para centralizar a webcam */
+        #webcam-container {
+            display: flex;
+            justify-content: center; /* Centraliza o conteúdo horizontalmente */
+            align-items: center; /* Centraliza o conteúdo verticalmente */
+            height: 500px; /* Define uma altura para o container */
+            margin-top: 20px; /* Adiciona um espaçamento superior */
         }
 
         /* Estilo para o botão */
@@ -99,25 +108,3 @@
         }
 
         async function loop() {
-            webcam.update();
-            await predict();
-            window.requestAnimationFrame(loop);
-        }
-
-        async function predict() {
-            const prediction = await model.predict(webcam.canvas);
-            for (let i = 0; i < maxPredictions; i++) {
-                const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
-                labelContainer.childNodes[i].innerHTML = classPrediction;
-
-                // Verificar se a classe é "Coral Normal" e mudar a cor para #113d63
-                if (prediction[i].className === "Coral Normal") {
-                    labelContainer.childNodes[i].style.color = "#113d63";  // Coral Normal
-                } else {
-                    labelContainer.childNodes[i].style.color = "#e97b4e";  // Coral Sol
-                }
-            }
-        }
-    </script>
-</body>
-</html>
