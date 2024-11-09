@@ -8,15 +8,19 @@
         #label-container div {
             font-size: 24px; /* Aumenta o tamanho do texto */
             font-weight: bold; /* Torna o texto em negrito */
-            color: #e97b4e; /* Define a cor do texto */
+            color: #e97b4e; /* Define a cor padrão para "Coral Sol" */
+        }
+
+        /* Estilo para o h3 FrancoDroid */
+        h3 {
+            color: #185387; /* Define a cor para FrancoDroid */
         }
     </style>
 </head>
 <body>
     <h1>SOLAR - Sistema Oceânico de Levantamento e Análise Remota</h1>
-    <div>FrancoDroid</div>
+    <h3>FrancoDroid</h3>
     <button type="button" onclick="init()">Start</button>
-    <button type="button" onclick="changeCamera()">Trocar Câmera</button>
     <div id="webcam-container"></div>
     <div id="label-container"></div>
 
@@ -26,9 +30,8 @@
         const URL = "https://teachablemachine.withgoogle.com/models/Xe_0jAM2a/";
 
         let model, webcam, labelContainer, maxPredictions;
-        let currentCamera = 0; // 0 para a câmera padrão, 1 para a próxima câmera
 
-        // Função para iniciar a webcam
+        // Load the image model and setup the webcam
         async function init() {
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
@@ -36,7 +39,8 @@
             model = await tmImage.load(modelURL, metadataURL);
             maxPredictions = model.getTotalClasses();
 
-            webcam = new tmImage.Webcam(1024, 768, true);
+            const flip = true;
+            webcam = new tmImage.Webcam(1024, 768, flip);
             await webcam.setup();
             await webcam.play();
             window.requestAnimationFrame(loop);
@@ -44,7 +48,8 @@
             document.getElementById("webcam-container").appendChild(webcam.canvas);
             labelContainer = document.getElementById("label-container");
             for (let i = 0; i < maxPredictions; i++) {
-                labelContainer.appendChild(document.createElement("div"));
+                const div = document.createElement("div");
+                labelContainer.appendChild(div);
             }
         }
 
@@ -59,29 +64,14 @@
             for (let i = 0; i < maxPredictions; i++) {
                 const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
                 labelContainer.childNodes[i].innerHTML = classPrediction;
+
+                // Verificar se a classe é "Coral Normal" e mudar a cor para #113d63
+                if (prediction[i].className === "Coral Normal") {
+                    labelContainer.childNodes[i].style.color = "#113d63";  // Coral Normal
+                } else {
+                    labelContainer.childNodes[i].style.color = "#e97b4e";  // Coral Sol
+                }
             }
-        }
-
-        // Função para alternar entre as câmeras
-        async function changeCamera() {
-            // Parar a webcam atual
-            if (webcam) {
-                webcam.stop();
-            }
-
-            // Mudar para a próxima câmera
-            const availableCameras = await tmImage.Webcam.enumerateDevices();
-            currentCamera = (currentCamera + 1) % availableCameras.length; // Alternar entre as câmeras
-            const camera = availableCameras[currentCamera];
-
-            // Iniciar a nova câmera
-            webcam = new tmImage.Webcam(1024, 768, true);
-            await webcam.setup(camera.deviceId); // Inicia a câmera com o novo ID
-            await webcam.play();
-            window.requestAnimationFrame(loop);
-
-            // Atualizar o canvas e as previsões
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
         }
     </script>
 </body>
