@@ -42,15 +42,6 @@
             font-family: 'Merriweather Sans', sans-serif;
         }
 
-        /* Estilo para centralizar a webcam */
-        #webcam-container {
-            display: flex;
-            justify-content: center; /* Centraliza o conteúdo horizontalmente */
-            align-items: center; /* Centraliza o conteúdo verticalmente */
-            height: 500px; /* Define uma altura para o container */
-            margin-top: 20px; /* Adiciona um espaçamento superior */
-        }
-
         /* Estilo para o botão */
         button {
             font-size: 20px; /* Aumenta o tamanho da fonte */
@@ -66,45 +57,10 @@
         button:hover {
             background-color: #113d63; /* Muda a cor de fundo quando o mouse passa sobre o botão */
         }
-    </style>
-</head>
-<body>
-    <h1></br>SOLAR - Sistema Oceânico de Levantamento e Análise Remota</h1>
-    <h2>FrancoDroid</h2>
-    <button id="startButton" type="button" onclick="init()">Iniciar Análise</button>
-    <div id="webcam-container"></div>
-    <div id="label-container"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-    <script type="text/javascript">
-        const URL = "https://teachablemachine.withgoogle.com/models/Xe_0jAM2a/";
-
-        let model, webcam, labelContainer, maxPredictions;
-
-        // Load the image model and setup the webcam
-        async function init() {
-            // Oculta o botão
-            document.getElementById("startButton").style.display = "none";
-
-            const modelURL = URL + "model.json";
-            const metadataURL = URL + "metadata.json";
-
-            model = await tmImage.load(modelURL, metadataURL);
-            maxPredictions = model.getTotalClasses();
-
-            const flip = true;
-            webcam = new tmImage.Webcam(1024, 768, flip);
-            await webcam.setup();
-            await webcam.play();
-            window.requestAnimationFrame(loop);
-
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
-            labelContainer = document.getElementById("label-container");
-            for (let i = 0; i < maxPredictions; i++) {
-                const div = document.createElement("div");
-                labelContainer.appendChild(div);
-            }
-        }
-
-        async function loop() {
+        /* Estilo para centralizar a webcam */
+        #webcam-container {
+            display: block; /* Torna o container um bloco */
+            margin: 0 auto; /* Centraliza o container */
+            text-align: center; /* Garante que o conteúdo dentro do container esteja centralizado */
+            padding-top: 20px; /* Dá um pequeno espaço acima 
