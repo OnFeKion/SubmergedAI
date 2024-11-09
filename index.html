@@ -1,88 +1,66 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>CELMask</title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<style>
-    .prediction {
-        font-size: 16px;
-    }
-    .highlight {
-        font-size: 24px;
-        font-weight: bold;
-    }
-</style>
+<head>
+    <title>CELMask</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+        /* Adiciona estilo ao label-container para aumentar o tamanho do texto */
+        #label-container div {
+            font-size: 24px; /* Aumenta o tamanho do texto */
+            font-weight: bold; /* Torna o texto em negrito */
+            color: #333; /* Define a cor do texto */
+        }
+    </style>
 </head>
 <body>
-<h1>SOLAR - Sistema Oceânico de Levantamento e Análise Remota</h1>
-<div>FrancoDroid</div>
-<button type="button" onclick="init()">Start</button>
-<div id="webcam-container"></div>
-<div id="label-container"></div>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-<script type="text/javascript">
-    const URL = "https://teachablemachine.withgoogle.com/models/Xe_0jAM2a/";
+    <h1>SOLAR - Sistema Oceânico de Levantamento e Análise Remota</h1>
+    <div>FrancoDroid</div>
+    <button type="button" onclick="init()">Start</button>
+    <div id="webcam-container"></div>
+    <div id="label-container"></div>
 
-    let model, webcam, labelContainer, maxPredictions;
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+    <script type="text/javascript">
+        const URL = "https://teachablemachine.withgoogle.com/models/Xe_0jAM2a/";
 
-    async function init() {
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
+        let model, webcam, labelContainer, maxPredictions;
 
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
+        // Load the image model and setup the webcam
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
 
-        const flip = true;
-        webcam = new tmImage.Webcam(800, 800, flip);
-        await webcam.setup();
-        await webcam.play();
-        window.requestAnimationFrame(loop);
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
 
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
-        labelContainer = document.getElementById("label-container");
-        for (let i = 0; i < maxPredictions; i++) {
-            labelContainer.appendChild(document.createElement("div"));
-        }
-    }
+            const flip = true;
+            webcam = new tmImage.Webcam(1024, 768, flip);
+            await webcam.setup();
+            await webcam.play();
+            window.requestAnimationFrame(loop);
 
-    async function loop() {
-        webcam.update();
-        await predict();
-        window.requestAnimationFrame(loop);
-    }
-
-    async function predict() {
-        const prediction = await model.predict(webcam.canvas);
-        let printed = false;
-
-        for (let i = 0; i < maxPredictions; i++) {
-            const probability = prediction[i].probability;
-            const formattedProbability = (probability * 100).toFixed(0) + "%";
-            const className = prediction[i].className;
-
-            if (probability > 0.7) {
-                labelContainer.childNodes[i].innerHTML = `<span class="highlight">${className}: ${formattedProbability}</span>`;
-                printed = true;
-            } else {
-                labelContainer.childNodes[i].innerHTML = `<span class="prediction">${className}: ${formattedProbability}</span>`;
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < maxPredictions; i++) {
+                labelContainer.appendChild(document.createElement("div"));
             }
         }
 
-        if (!printed) {
-            labelContainer.innerHTML = '<div class="highlight">Indeterminado</div>';
+        async function loop() {
+            webcam.update();
+            await predict();
+            window.requestAnimationFrame(loop);
         }
-    }
-</script>
 
-<script type="text/javascript">
-  window._mfq = window._mfq || [];
-  (function() {
-    var mf = document.createElement("script");
-    mf.type = "text/javascript"; mf.defer = true;
-    mf.src = "//cdn.mouseflow.com/projects/d6995c29-971e-436c-b4cf-c234285947f8.js";
-    document.getElementsByTagName("head")[0].appendChild(mf);
-  })();
-</script>
-
+        async function predict() {
+            const prediction = await model.predict(webcam.canvas);
+            for (let i = 0; i < maxPredictions; i++) {
+                const classPrediction =
+                    prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
+                labelContainer.childNodes[i].innerHTML = classPrediction;
+            }
+        }
+    </script>
 </body>
 </html>
