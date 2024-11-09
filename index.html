@@ -10,6 +10,11 @@
             font-weight: bold; /* Torna o texto em negrito */
             color: #e97b4e; /* Define a cor do texto */
         }
+
+        /* Estilo para a cor do Coral Normal */
+        .coral-normal {
+            color: #ff7f50; /* Cor para o Coral Normal */
+        }
     </style>
 </head>
 <body>
@@ -43,7 +48,8 @@
             document.getElementById("webcam-container").appendChild(webcam.canvas);
             labelContainer = document.getElementById("label-container");
             for (let i = 0; i < maxPredictions; i++) {
-                labelContainer.appendChild(document.createElement("div"));
+                const div = document.createElement("div");
+                labelContainer.appendChild(div);
             }
         }
 
@@ -56,9 +62,13 @@
         async function predict() {
             const prediction = await model.predict(webcam.canvas);
             for (let i = 0; i < maxPredictions; i++) {
-                const classPrediction =
-                    prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
+                const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
                 labelContainer.childNodes[i].innerHTML = classPrediction;
+
+                // Defina a cor para o Coral Normal (modificando o texto que contém esse rótulo)
+                if (prediction[i].className === "Coral Normal") {
+                    labelContainer.childNodes[i].classList.add("coral-normal");
+                }
             }
         }
     </script>
