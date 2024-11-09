@@ -3,8 +3,8 @@
 <head><title>CELMask</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head><body>
-<h1>CELMask - Sistema de Reconhecimento de Uso de Máscaras de Proteção</h1>
-<div>Desenvolvido por Thiago Souza (CEL Maker)</div>
+<h1>SOLAR - Sistema Oceânico de Levantamento e Análise Remota</h1>
+<div>FrancoDroid</div>
 <button type="button" onclick="init()">Start</button>
 <div id="webcam-container"></div>
 <div id="label-container"></div>
@@ -15,7 +15,7 @@
     // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
 
     // the link to your model provided by Teachable Machine export panel
-    const URL = "https://teachablemachine.withgoogle.com/models/jLY1zrgM1/";
+    const URL = "https://teachablemachine.withgoogle.com/models/Xe_0jAM2a/";
 
     let model, webcam, labelContainer, maxPredictions;
 
@@ -33,7 +33,7 @@
 
         // Convenience function to setup a webcam
         const flip = true; // whether to flip the webcam
-        webcam = new tmImage.Webcam(500, 500, flip); // width, height, flip
+        webcam = new tmImage.Webcam(1024, 768, flip); // width, height, flip
         await webcam.setup(); // request access to the webcam
         await webcam.play();
         window.requestAnimationFrame(loop);
