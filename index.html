@@ -50,7 +50,7 @@
 <body>
     <h1>SOLAR - Sistema Oceânico de Levantamento e Análise Remota</h1>
     <h2>FrancoDroid</h2>
-    <button type="button" onclick="init()">Start</button>
+    <button id="startButton" type="button" onclick="init()">Iniciar Análise</button>
     <div id="webcam-container"></div>
     <div id="label-container"></div>
 
@@ -63,6 +63,9 @@
 
         // Load the image model and setup the webcam
         async function init() {
+            // Oculta o botão
+            document.getElementById("startButton").style.display = "none";
+
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
 
