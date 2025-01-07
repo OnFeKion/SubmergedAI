@@ -144,14 +144,11 @@
         }
 
         async function uploadImage() {
-            document.getElementById("startButton").style.display = "none";
-            document.getElementById("uploadButton").style.display = "none";
-
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
 
-            model = await tmImage.load(modelURL, metadataURL);
-            maxPredictions = model.getTotalClasses();
+            model = model || await tmImage.load(modelURL, metadataURL);
+            maxPredictions = maxPredictions || model.getTotalClasses();
 
             const input = document.createElement('input');
             input.type = 'file';
