@@ -158,6 +158,7 @@
                 if (file) {
                     const img = document.getElementById('image-preview');
                     img.src = URL.createObjectURL(file);
+                    img.onload = () => URL.revokeObjectURL(img.src); // Evita vazamento de memória
                     img.style.display = 'block';
 
                     const imageElement = new Image();
