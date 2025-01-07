@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>SOLAR</title>
-    
+
     <link rel="icon" type="image/png" href="./favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="./favicon/favicon.svg" />
     <link rel="shortcut icon" href="./favicon/favicon.ico" />
@@ -26,8 +26,8 @@
             padding: 0;
             height: 100%;
             font-family: 'Merriweather Sans', sans-serif;
-            overflow-x: hidden;
-            overflow-y: auto;
+            overflow-x: hidden; /* Impede rolagem horizontal */
+            overflow-y: auto; /* Permite rolagem vertical se necessário */
             width: 100%;
         }
 
@@ -83,13 +83,14 @@
             color: #185387;
             font-size: 38px;
             font-family: 'Merriweather Sans', sans-serif;
-	    font-weight: bold;
+            font-weight: bold;
             position: relative;
             z-index: 3;
             width: 100%;
             word-wrap: break-word;
         }
 
+        /* Estilos do botão "Iniciar Análise" */
         button {
             font-size: 20px;
             padding: 15px 30px;
@@ -128,6 +129,25 @@
             left: 100%;
         }
 
+        .button-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #image-preview {
+            display: block;
+            margin: 20px auto;
+            max-width: 80%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-50px) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+
         #waveBackground {
             position: fixed;
             top: 0;
@@ -159,23 +179,17 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             z-index: 2;
         }
-
-        #uploaded-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
     <h1>SOLAR</h1>
     <h2><span style="color: #E3001A;">Franco</span>Droid</h2>
-    <button id="startCameraButton" type="button" onclick="initCamera()">Usar Câmera</button>
-    <button id="uploadButton" type="button" onclick="document.getElementById('imageUpload').click()">Importar Foto</button>
-    <input id="imageUpload" type="file" accept="image/*" style="display: none;" onchange="handleImageUpload(event)" />
+    <div class="button-container">
+        <button id="startButton" type="button" onclick="initCamera()">Usar Câmera</button>
+        <button id="uploadButton" type="button" onclick="uploadImage()">Importar Foto</button>
+    </div>
     <div id="webcam-container"></div>
+    <img id="image-preview" src="" alt="Pré-visualização da Imagem" style="display: none;">
     <div id="label-container"></div>
     <div id="waveBackground"></div>
 
@@ -187,7 +201,7 @@
         let model, webcam, labelContainer, maxPredictions;
 
         async function initCamera() {
-            document.getElementById("startCameraButton").style.display = "none";
+            document.getElementById("startButton").style.display = "none";
             document.getElementById("uploadButton").style.display = "none";
 
             const modelURL = URL + "model.json";
@@ -210,18 +224,9 @@
             }
         }
 
-        async function handleImageUpload(event) {
-            document.getElementById("startCameraButton").style.display = "none";
+        async function uploadImage() {
+            document.getElementById("startButton").style.display = "none";
             document.getElementById("uploadButton").style.display = "none";
-
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const img = document.createElement("img");
-            img.id = "uploaded-image";
-            img.src = URL.createObjectURL(file);
-
-            document.getElementById("webcam-container").appendChild(img);
 
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
@@ -229,37 +234,39 @@
             model = await tmImage.load(modelURL, metadataURL);
             maxPredictions = model.getTotalClasses();
 
-            labelContainer = document.getElementById("label-container");
-            for (let i = 0; i < maxPredictions; i++) {
-                const div = document.createElement("div");
-                labelContainer.appendChild(div);
-            }
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const img = document.getElementById('image-preview');
+                    img.src = URL.createObjectURL(file);
+                    img.style.display = 'block';
 
-            predictFromImage(img);
-        }
-
-        async function predictFromImage(image) {
-            const prediction = await model.predict(image);
-            for (let i = 0; i < maxPredictions; i++) {
-                const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
-                labelContainer.childNodes[i].innerHTML = classPrediction;
-
-                if (prediction[i].className === "Coral Normal") {
-                    labelContainer.childNodes[i].style.color = "#113d63";
-                } else {
-                    labelContainer.childNodes[i].style.color = "#e97b4e";
+                    const imageElement = new Image();
+                    imageElement.src = img.src;
+                    imageElement.onload = async () => {
+                        const prediction = await model.predict(imageElement);
+                        displayPredictions(prediction);
+                    };
                 }
-            }
+            };
+            input.click();
         }
 
         async function loop() {
             webcam.update();
-            await predictFromWebcam();
+            await predictCamera();
             window.requestAnimationFrame(loop);
         }
 
-        async function predictFromWebcam() {
+        async function predictCamera() {
             const prediction = await model.predict(webcam.canvas);
+            displayPredictions(prediction);
+        }
+
+        function displayPredictions(prediction) {
             for (let i = 0; i < maxPredictions; i++) {
                 const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
                 labelContainer.childNodes[i].innerHTML = classPrediction;
@@ -271,6 +278,37 @@
                 }
             }
         }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const waveBackground = document.getElementById('waveBackground');
+
+            if (waveBackground) {
+                let emojiCount = 0;
+                function createWaveEmoji() {
+                    if (emojiCount < 8) {
+                        const emoji = document.createElement('div');
+                        emoji.textContent = '🌊';
+
+                        const size = Math.random() * (60 - 30) + 30;
+                        const opacity = Math.random() * 0.5 + 0.5;
+
+                        emoji.style.fontSize = `${size}px`;
+                        emoji.style.opacity = `${opacity}`;
+                        emoji.style.animation = 'fall 10s linear infinite';
+                        emoji.style.left = `${Math.random() * 100}vw`;
+
+                        waveBackground.appendChild(emoji);
+                        emojiCount++;
+
+                        emoji.addEventListener('animationend', () => {
+                            waveBackground.removeChild(emoji);
+                            emojiCount--;
+                        });
+                    }
+                }
+                setInterval(createWaveEmoji, 1000);
+            }
+        });
     </script>
 </body>
 </html>
