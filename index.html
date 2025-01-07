@@ -26,8 +26,8 @@
             padding: 0;
             height: 100%;
             font-family: 'Merriweather Sans', sans-serif;
-            overflow-x: hidden; /* Impede rolagem horizontal */
-            overflow-y: auto; /* Permite rolagem vertical se necessário */
+            overflow-x: hidden;
+            overflow-y: auto;
             width: 100%;
         }
 
@@ -90,7 +90,6 @@
             word-wrap: break-word;
         }
 
-        /* Estilos do botão "Iniciar Análise" */
         button {
             font-size: 20px;
             padding: 15px 30px;
@@ -101,8 +100,8 @@
             cursor: pointer;
             position: relative;
             z-index: 3;
-            display: block;
-            margin: 20px auto;
+            display: inline-block;
+            margin: 20px 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             transition: all 0.3s ease;
@@ -127,11 +126,6 @@
 
         button:hover::before {
             left: 100%;
-        }
-
-        @keyframes fall {
-            0% { transform: translateY(-50px) rotate(0deg); }
-            100% { transform: translateY(100vh) rotate(360deg); }
         }
 
         #waveBackground {
@@ -165,12 +159,22 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             z-index: 2;
         }
+
+        #uploaded-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <h1>SOLAR</h1>
     <h2><span style="color: #E3001A;">Franco</span>Droid</h2>
-    <button id="startButton" type="button" onclick="init()">Iniciar Análise</button>
+    <button id="startCameraButton" type="button" onclick="initCamera()">Usar Câmera</button>
+    <button id="uploadButton" type="button" onclick="document.getElementById('imageUpload').click()">Importar Foto</button>
+    <input id="imageUpload" type="file" accept="image/*" style="display: none;" onchange="handleImageUpload(event)" />
     <div id="webcam-container"></div>
     <div id="label-container"></div>
     <div id="waveBackground"></div>
@@ -182,8 +186,9 @@
 
         let model, webcam, labelContainer, maxPredictions;
 
-        async function init() {
-            document.getElementById("startButton").style.display = "none"; // Ocultar o botão após iniciar a análise
+        async function initCamera() {
+            document.getElementById("startCameraButton").style.display = "none";
+            document.getElementById("uploadButton").style.display = "none";
 
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
@@ -205,14 +210,36 @@
             }
         }
 
-        async function loop() {
-            webcam.update();
-            await predict();
-            window.requestAnimationFrame(loop);
+        async function handleImageUpload(event) {
+            document.getElementById("startCameraButton").style.display = "none";
+            document.getElementById("uploadButton").style.display = "none";
+
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const img = document.createElement("img");
+            img.id = "uploaded-image";
+            img.src = URL.createObjectURL(file);
+
+            document.getElementById("webcam-container").appendChild(img);
+
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < maxPredictions; i++) {
+                const div = document.createElement("div");
+                labelContainer.appendChild(div);
+            }
+
+            predictFromImage(img);
         }
 
-        async function predict() {
-            const prediction = await model.predict(webcam.canvas);
+        async function predictFromImage(image) {
+            const prediction = await model.predict(image);
             for (let i = 0; i < maxPredictions; i++) {
                 const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
                 labelContainer.childNodes[i].innerHTML = classPrediction;
@@ -225,36 +252,25 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const waveBackground = document.getElementById('waveBackground');
-            
-            if (waveBackground) {
-                let emojiCount = 0;
-                function createWaveEmoji() {
-                    if (emojiCount < 8) {
-                        const emoji = document.createElement('div');
-                        emoji.textContent = '🌊';
-                        
-                        const size = Math.random() * (60 - 30) + 30;
-                        const opacity = Math.random() * 0.5 + 0.5;
-                        
-                        emoji.style.fontSize = `${size}px`;
-                        emoji.style.opacity = `${opacity}`;
-                        emoji.style.animation = 'fall 10s linear infinite';
-                        emoji.style.left = `${Math.random() * 100}vw`;
-                        
-                        waveBackground.appendChild(emoji);
-                        emojiCount++;
-                        
-                        emoji.addEventListener('animationend', () => {
-                            waveBackground.removeChild(emoji);
-                            emojiCount--;
-                        });
-                    }
+        async function loop() {
+            webcam.update();
+            await predictFromWebcam();
+            window.requestAnimationFrame(loop);
+        }
+
+        async function predictFromWebcam() {
+            const prediction = await model.predict(webcam.canvas);
+            for (let i = 0; i < maxPredictions; i++) {
+                const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
+                labelContainer.childNodes[i].innerHTML = classPrediction;
+
+                if (prediction[i].className === "Coral Normal") {
+                    labelContainer.childNodes[i].style.color = "#113d63";
+                } else {
+                    labelContainer.childNodes[i].style.color = "#e97b4e";
                 }
-                setInterval(createWaveEmoji, 1000);
             }
-        });
+        }
     </script>
 </body>
 </html>
